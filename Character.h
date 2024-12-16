@@ -30,6 +30,9 @@ private:
     const float SCREEN_RIGHT = 1.0f;
     const float SCREEN_BOTTOM = -1.0f;
     const float SCREEN_TOP = 1.0f;
+
+    float airPauseTime;        // Time to pause in the air
+    const float maxAirPause = 0.2f;
 public:
     // Constructor
     Character(float x, float y, float width, float height, float speedX, float speedY, float animationSpeed);
@@ -46,6 +49,27 @@ public:
     void jump(float jumpSpeed);
     float getX() const { return x; }
 
+};
+
+/*------------------------------------------------------------- Bullets -----------------------------------------------------*/
+
+class Bullet {
+private:
+    static const int MAX_TEXTURES = 10; // Maximum number of textures
+    GLuint textures[MAX_TEXTURES];
+    int textureCount;
+    float x,y;
+    float width, height;
+    float speedX, speedY;
+    bool direction;
+    bool isViable;
+public:
+    Bullet(float x, float y, float width, float height, float speedX, float speedY, bool direction, bool isViable);
+    ~Bullet();
+
+    void loadTextures(const std::string texturePaths[], int count);
+    void update();
+    void draw() const;
 };
 
 #endif // CHARACTER_H
