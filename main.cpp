@@ -1,7 +1,9 @@
 #include <GL/glut.h>
 #include "Character.h"
 #include "Zombie.h"
+#include <iostream>
 
+Bullet* bullet;
 Character* character;
 Zombie2* zombie1;
 Zombie2* zombie2;
@@ -9,6 +11,11 @@ Zombie2* zombie3;
 bool moveLeftKey = false;
 bool moveRightKey = false;
 bool jumpKey = false;
+
+void OnKeyPress(unsigned char key, int x, int y);
+void OnKeyRelease(unsigned char key, int x, int y);
+void handleSpecialKeyPress(int key, int x, int y);
+void handleSpecialKeyRelease(int key, int x, int y);
 
 // Initialize OpenGL settings and load character
 void initialize() {
@@ -89,38 +96,74 @@ void keyboard(unsigned char key, int x, int y) {
     }
 }
 /*--------------------------------------------------Control movement by keyboard--------------------------------*/
-void handleKeyPress(unsigned char key, int x, int y) {
+
+
+
+// Main function
+int main(int argc, char** argv) {
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitWindowSize(800, 600);
+    glutCreateWindow("Character Animation");
+
+    // Register display and update callbacks
+    glutDisplayFunc(display);
+    glutIdleFunc(display);
+
+    // Register keyboard callbacks
+    glutKeyboardFunc(OnKeyPress);
+    glutKeyboardUpFunc(OnKeyRelease);
+
+    glutSpecialFunc(handleSpecialKeyPress);
+    glutSpecialUpFunc(handleSpecialKeyRelease);
+
+    initialize();
+    atexit(cleanup); // Register cleanup function
+
+    glutDisplayFunc(display);
+    glutIdleFunc(display);
+    glutKeyboardFunc(keyboard); // Handle keyboard input
+
+    glutMainLoop();
+    return 0;
+}
+// control with w, a, d
+void OnKeyPress(unsigned char key, int x, int y) {
     switch (key) {
-    case 'a': // Move left
-    case 'A':
-        moveLeftKey = true;
+    case 'w': case 'W':
+        jumpKey = true; // Jump
         break;
-    case 'd': // Move right
-    case 'D':
-        moveRightKey = true;
+    case 'a': case 'A':
+        moveLeftKey = true; // Move Left
         break;
-    case ' ': // Jump
-        jumpKey = true;
+    case 'd': case 'D':
+        moveRightKey = true; // Move Right
+        break;
+    case 27: // ESC key
+        exitProgram();
+        break;
+    default:
+        std::cout << "Unhandled key: " << key << std::endl;
+    }
+}
+
+void OnKeyRelease(unsigned char key, int x, int y) {
+    switch (key) {
+    case 'w': case 'W':
+        jumpKey = false; // Stop jumping
+        break;
+    case 'a': case 'A':
+        moveLeftKey = false; // Stop moving left
+        break;
+    case 'd': case 'D':
+        moveRightKey = false; // Stop moving right
         break;
     }
 }
 
-void handleKeyRelease(unsigned char key, int x, int y) {
-    switch (key) {
-    case 'a': // Stop moving left
-    case 'A':
-        moveLeftKey = false;
-        break;
-    case 'd': // Stop moving right
-    case 'D':
-        moveRightKey = false;
-        break;
-    case ' ': // Stop jumping
-        jumpKey = false;
-        break;
-    }
-}
 
+
+// control with special keys
 void handleSpecialKeyPress(int key, int x, int y) {
     switch (key) {
     case GLUT_KEY_LEFT: // Move left
@@ -147,33 +190,4 @@ void handleSpecialKeyRelease(int key, int x, int y) {
         jumpKey = false;
         break;
     }
-}
-
-
-// Main function
-int main(int argc, char** argv) {
-    glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-    glutInitWindowSize(800, 600);
-    glutCreateWindow("Character Animation");
-
-    // Register display and update callbacks
-    glutDisplayFunc(display);
-    glutIdleFunc(display);
-
-    // Register keyboard callbacks
-    glutKeyboardFunc(handleKeyPress);
-    glutKeyboardUpFunc(handleKeyRelease);
-    glutSpecialFunc(handleSpecialKeyPress);
-    glutSpecialUpFunc(handleSpecialKeyRelease);
-
-    initialize();
-    atexit(cleanup); // Register cleanup function
-
-    glutDisplayFunc(display);
-    glutIdleFunc(display);
-    glutKeyboardFunc(keyboard); // Handle keyboard input
-
-    glutMainLoop();
-    return 0;
 }
