@@ -128,41 +128,34 @@ bool Zombie::isDead() const {
 // Constructor for Zombie2
 Zombie2::Zombie2(float x, float y, float width, float height, float speedX, float speedY, float animationSpeed, Character* target)
     : Zombie(x, y, width, height, speedX, speedY, animationSpeed, target) {
-    // Additional initialization for Zombie2 (if any)
+    
 }
 
-// Method to update the zombie's state (this is overridden from the Zombie class)
+// update the zombie's state (this is overridden from the Zombie class)
+
 void Zombie2::update() {
     if (!target) return;
 
     float targetX = target->getX();
 
-    // Calculate the distance to the target
     float distance = targetX - x;
 
-    // Stop movement if the zombie is close enough to the target
-    if (std::abs(distance) < 0.01f) {
-        // Close enough to stop
-        speedX = 0;
+    // Always try to move towards the target (even if close)
+    if (distance > 0) {
+        x += (speedX / 8);
+        isFacingRight = true;
     }
-    else {
-        // Move towards the target
-        if (distance > 0) {
-            x += (speedX / 8);
-            isFacingRight = true; // Moving right
-        }
-        else if (distance < 0) {
-            x -= (speedX / 8);
-            isFacingRight = false; // Moving left
-        }
+    else if (distance < 0) {
+        x -= (speedX / 8);
+        isFacingRight = false;
     }
 
-    // Clamp position to screen boundaries
+    // screen boundaries
     if (x < -1.0f + width) x = -1.0f + width;
     if (x > 1.0f - width) x = 1.0f - width;
 
     // Update animation
-    float currentTime = glutGet(GLUT_ELAPSED_TIME) / 2000.0f;
+    float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
     if (currentTime - lastUpdateTime > animationSpeed && textureCount > 0) {
         currentStep = (currentStep + 1) % textureCount;
         lastUpdateTime = currentTime;
@@ -170,12 +163,16 @@ void Zombie2::update() {
 }
 
 
-void Zombie2::draw() const {
-    if (textureCount == 0) return; // No textures loaded
 
+
+
+void Zombie2::draw() const {
+    if (textureCount == 0) return;
     glBindTexture(GL_TEXTURE_2D, textures[currentStep]);
 
     glBegin(GL_QUADS);
+
+    
 
     if (isFacingRight) {
         // Facing left: flipped texture coordinates
