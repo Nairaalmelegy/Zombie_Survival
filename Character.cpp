@@ -37,7 +37,7 @@ GLuint loadTexture(const std::string& filePath) {
 
 // Constructor
 Character::Character(float x, float y, float width, float height, float speedX, float speedY, float animationSpeed)
-    : x(x), y(y), width(width), height(height), speedX(speedX), speedY(speedY), animationSpeed(animationSpeed), currentStep(0), lastUpdateTime(0.0f), textureCount(0) {}
+    : x(x), y(y), width(width), height(height), speedX(speedX), speedY(speedY), animationSpeed(animationSpeed), currentStep(0), lastUpdateTime(0.0f), textureCount(0), airPauseTime(0.0f) {}
 
 // Destructor
 Character::~Character() {
@@ -91,7 +91,7 @@ void Character::update() {
     if (jumpKey && isOnGround) {
         jump(0.08f);
     }
-    const float gravity = -0.005f; // Adjust gravity magnitude
+    const float gravity = -0.003f; // Adjust gravity magnitude
     speedY += gravity;
     y += speedY;
 
