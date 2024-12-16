@@ -61,17 +61,51 @@ void Character::loadTextures(const std::string texturePaths[], int count) {
     }
 }
 
-// Update character's position and animation
+
+void Character::moveLeft() {
+    if (x - speedX >= SCREEN_LEFT) {
+        x -= speedX;
+        isFacingLeft = true;
+    }
+}
+
+void Character::moveRight() {
+    if (x + width + speedX <= SCREEN_RIGHT) {
+        x += speedX;
+        isFacingLeft = false;
+    }
+}
+void Character::jump(float jumpSpeed) {
+    if (isOnGround) {
+        speedY = jumpSpeed;
+        isOnGround = false; // Prevent jumping mid-air
+    }
+}
+
 void Character::update() {
-    // To stop movement, don't update x and y
-    // x += speedX;
-    // y += speedY;
+    // Apply movement if keys are pressed
+    if (moveLeftKey) moveLeft();
+    if (moveRightKey) moveRight();
 
-    // Bounce off boundaries (if needed, remove these lines to prevent bouncing)
-    // if (x < -1.0f || x > 1.0f - width) speedX = -speedX;
-    // if (y < -1.0f || y > 1.0f - height) speedY = -speedY;
+    // Jump logic
+    if (jumpKey && isOnGround) {
+        jump(0.08f);
+    }
+    const float gravity = -0.005f; // Adjust gravity magnitude
+    speedY += gravity;
+    y += speedY;
 
-    // Update animation
+    if (y <= groundLevel) { // Check against ground level
+        y = groundLevel;
+        speedY = 0.0f;
+        isOnGround = true; // Reset ground flag
+    }
+    else {
+        isOnGround = false;
+    }
+
+
+    // Animation update
     float currentTime = glutGet(GLUT_ELAPSED_TIME) / 5000.0f;
     if (currentTime - lastUpdateTime > animationSpeed && textureCount > 0) {
         currentStep = (currentStep + 1) % textureCount;
@@ -79,16 +113,30 @@ void Character::update() {
     }
 }
 
+
+
 // Draw the character
 void Character::draw() const {
     if (textureCount == 0) return;
-
+    
     glBindTexture(GL_TEXTURE_2D, textures[currentStep]);
 
     glBegin(GL_QUADS);
-    glTexCoord2f(0.0f, 0.0f); glVertex2f(x, y);
-    glTexCoord2f(1.0f, 0.0f); glVertex2f(x + width, y);
-    glTexCoord2f(1.0f, 1.0f); glVertex2f(x + width, y + height);
-    glTexCoord2f(0.0f, 1.0f); glVertex2f(x, y + height);
+
+    if (isFacingLeft) {
+        // Facing left: flipped texture coordinates
+        glTexCoord2f(1.0f, 0.0f); glVertex2f(x, y);
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(x + width, y);
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(x + width, y + height);
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(x, y + height);
+
+    }
+    else {
+        // Facing right: normal texture coordinates
+        glTexCoord2f(0.0f, 0.0f); glVertex2f(x, y);
+        glTexCoord2f(1.0f, 0.0f); glVertex2f(x + width, y);
+        glTexCoord2f(1.0f, 1.0f); glVertex2f(x + width, y + height);
+        glTexCoord2f(0.0f, 1.0f); glVertex2f(x, y + height);
+    }
     glEnd();
 }
