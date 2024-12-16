@@ -141,11 +141,11 @@ void Zombie2::update() {
     float distance = targetX - x;
 
     // Always try to move towards the target (even if close)
-    if (distance > 0) {
+    if (distance > 0.1) {
         x += (speedX / 8);
         isFacingRight = true;
     }
-    else if (distance < 0) {
+    else if (distance < -0.1) {
         x -= (speedX / 8);
         isFacingRight = false;
     }
