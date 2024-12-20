@@ -1,9 +1,16 @@
 #include "Character.h"
 #include <GL/glu.h>
 #define STB_IMAGE_IMPLEMENTATION
+#define STBI_MALLOC(size) malloc(size)
+#define STBI_FREE(ptr) free(ptr)
+#define STBI_REALLOC(ptr, newsize) realloc(ptr, newsize)
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_NO_FAILURE_STRINGS
 #include "stb_image.h"
 
 #include <iostream>
+float groundLevel = -1.0f;
+
 
 // Helper function to load a texture
 GLuint loadTexture(const std::string& filePath) {
@@ -61,7 +68,64 @@ void Character::loadTextures(const std::string texturePaths[], int count) {
     }
 }
 
+/*.......................................Gun.....................................................*/
+/*Load the gun texture*/
+void Character::loadGunTexture(const std::string& gunTexturePath) {
+    gunTexture = loadTexture(gunTexturePath); // Use the existing helper function
+    gunWidth = width / 1.0f;  // Example dimensions
+    gunHeight = height / 2.0f;
+    gunAngle = 0.0f;          // Initialize the gun angle
+}
 
+void Character::updateGunRotation(float mx, float my) {
+    mouseX = mx;
+    mouseY = my;
+
+    // Calculate angle between character and mouse
+    float dx = mouseX - (x + width / 1.8f);
+    float dy = mouseY - (y + height / 2.0f);
+    float angle = atan2(dy, dx) * 180.0f / 3.14159f;
+
+    if (isFacingLeft) {
+        gunAngle = 180.0f - angle;
+    }
+    else {
+        gunAngle = angle;
+    }
+}
+
+void Character::drawGun() const {
+    if (gunTexture == 0) return;
+
+    glPushMatrix();
+
+    // Translate to character's position
+    glTranslatef(x + width / 1.5f, y + height / 1.5f, 0.0f);
+
+    if (isFacingLeft) {
+        glScalef(-1.0f, 1.0f, 1.0f); // Flip horizontally for left-facing
+        glRotatef(gunAngle, 0.0f, 0.0f, 1.0f);
+    }
+    else {
+        glRotatef(gunAngle, 0.0f, 0.0f, 1.0f);
+    }
+
+    // Bind the gun texture
+    glBindTexture(GL_TEXTURE_2D, gunTexture);
+
+    // Draw the gun as a rectangle
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f); glVertex2f(-gunWidth / 2.0f, -gunHeight / 2.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex2f(gunWidth / 2.0f, -gunHeight / 2.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex2f(gunWidth / 2.0f, gunHeight / 2.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex2f(-gunWidth / 2.0f, gunHeight / 2.0f);
+    glEnd();
+
+    glPopMatrix();
+}
+
+
+/*.......................................Character move.....................................................*/
 void Character::moveLeft() {
     if (x - speedX >= SCREEN_LEFT) {
         x -= speedX;
@@ -91,19 +155,21 @@ void Character::update() {
     if (jumpKey && isOnGround) {
         jump(0.08f);
     }
+
+    // Gravity
     const float gravity = -0.003f; // Adjust gravity magnitude
     speedY += gravity;
     y += speedY;
 
-    if (y <= groundLevel) { // Check against ground level
+    // Ground collision
+    if (y <= groundLevel) {
         y = groundLevel;
         speedY = 0.0f;
-        isOnGround = true; // Reset ground flag
+        isOnGround = true;
     }
     else {
         isOnGround = false;
     }
-
 
     // Animation update
     float currentTime = glutGet(GLUT_ELAPSED_TIME) / 5000.0f;
@@ -111,32 +177,146 @@ void Character::update() {
         currentStep = (currentStep + 1) % textureCount;
         lastUpdateTime = currentTime;
     }
+
+    // Update bullets and remove out-of-bounds bullets
+    auto it = bullets.begin();
+    while (it != bullets.end()) {
+        it->update();
+        if (it->x < SCREEN_LEFT || it->x > SCREEN_RIGHT || it->y < SCREEN_BOTTOM || it->y > SCREEN_TOP) {
+            it = bullets.erase(it);
+        }
+        else {
+            ++it;
+        }
+    }
 }
 
-
-
 // Draw the character
-void Character::draw() const {
+void Character::draw() {
     if (textureCount == 0) return;
-    
+
+    // Draw character
     glBindTexture(GL_TEXTURE_2D, textures[currentStep]);
-
     glBegin(GL_QUADS);
-
     if (isFacingLeft) {
-        // Facing left: flipped texture coordinates
         glTexCoord2f(1.0f, 0.0f); glVertex2f(x, y);
         glTexCoord2f(0.0f, 0.0f); glVertex2f(x + width, y);
         glTexCoord2f(0.0f, 1.0f); glVertex2f(x + width, y + height);
         glTexCoord2f(1.0f, 1.0f); glVertex2f(x, y + height);
-
     }
     else {
-        // Facing right: normal texture coordinates
         glTexCoord2f(0.0f, 0.0f); glVertex2f(x, y);
         glTexCoord2f(1.0f, 0.0f); glVertex2f(x + width, y);
         glTexCoord2f(1.0f, 1.0f); glVertex2f(x + width, y + height);
         glTexCoord2f(0.0f, 1.0f); glVertex2f(x, y + height);
     }
     glEnd();
+
+    // Draw gun
+    drawGun();
+
+    // Remove inactive bullets
+    auto new_end = std::remove_if(bullets.begin(), bullets.end(),
+        [](const Bullet& bullet) { return !bullet.isActive; });
+    bullets.erase(new_end, bullets.end());
+
+    // Draw bullets
+    for (const auto& bullet : bullets) {
+        bullet.draw();
+    }
 }
+
+
+
+/*........................................................Bullets........................................*/
+
+void Character::loadBulletTexture(const std::string& BullettexturePath) {
+    BulletTexture = loadTexture(BullettexturePath);
+    if (BulletTexture == 0) {
+        std::cerr << "Error loading bullet texture from: " << BullettexturePath << std::endl;
+    }
+}
+
+
+void Character::fireBullet() {
+    // Ensure BulletTexture is valid
+    if (BulletTexture == 0) {
+        std::cerr << "Error: BulletTexture is not loaded!" << std::endl;
+        return;
+    }
+
+    float bulletX = x + (isFacingLeft ? -width / 2.0f : width / 2.0f);  // Adjust the offset
+    float bulletY = y + height / 4.0f;  // Adjust Y to be closer to the gun
+
+    // Convert gunAngle from degrees to radians
+    float angleRadians = gunAngle * 3.14159f / 180.0f;
+
+    // Calculate bullet direction
+    float bulletDx = cos(angleRadians);
+    float bulletDy = sin(angleRadians);
+
+    // Normalize direction vector
+    float magnitude = sqrt(bulletDx * bulletDx + bulletDy * bulletDy);
+    bulletDx /= magnitude;
+    bulletDy /= magnitude;
+
+    // Set bullet speed and direction
+    float bulletSpeed = 0.02f; // Adjust this value as needed
+    Bullet newBullet(bulletX, bulletY, bulletDx * bulletSpeed, bulletDy * bulletSpeed, bulletSpeed);
+    newBullet.width = 0.05f;
+    newBullet.height = 0.05f;
+
+    // Assign the BulletTexture to the new bullet
+    newBullet.BulletTexture = this->BulletTexture;
+
+    // Add the bullet to the vector
+    bullets.push_back(newBullet);
+}
+
+
+
+void Character::updateBullets() {
+    for (auto& bullet : bullets) {
+        if (bullet.isActive) {
+            bullet.update();
+            // Deactivate the bullet if it moves off-screen
+            if (bullet.x < SCREEN_LEFT || bullet.x > SCREEN_RIGHT ||
+                bullet.y < SCREEN_BOTTOM || bullet.y > SCREEN_TOP) {
+                bullet.isActive = false;
+            }
+        }
+    }
+
+    // Remove inactive bullets from the list
+    bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
+        [](const Bullet& bullet) { return !bullet.isActive; }),
+        bullets.end());
+}
+
+void Character::drawBullets() const {
+    for (const auto& bullet : bullets) {
+        if (bullet.isActive) {
+            bullet.draw();
+        }
+    }
+}
+
+void Bullet::update() {
+    // Move the bullet based on its direction and speed
+    x += dx;
+    y += dy;
+}
+
+void Bullet::draw() const {
+    glBindTexture(GL_TEXTURE_2D, BulletTexture);
+    glBegin(GL_QUADS);
+    glTexCoord2f(0.0f, 0.0f); glVertex2f(x - width / 2, y - height / 2);
+    glTexCoord2f(1.0f, 0.0f); glVertex2f(x + width / 2, y - height / 2);
+    glTexCoord2f(1.0f, 1.0f); glVertex2f(x + width / 2, y + height / 2);
+    glTexCoord2f(0.0f, 1.0f); glVertex2f(x - width / 2, y + height / 2);
+    glEnd();
+}
+
+
+
+
