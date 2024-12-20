@@ -16,6 +16,9 @@ void OnKeyPress(unsigned char key, int x, int y);
 void OnKeyRelease(unsigned char key, int x, int y);
 void handleSpecialKeyPress(int key, int x, int y);
 void handleSpecialKeyRelease(int key, int x, int y);
+void mouseMotionCallback(int x, int y);
+void handleMouseClick(int button, int state, int x, int y);
+
 
 // Initialize OpenGL settings and load character
 void initialize() {
@@ -26,7 +29,11 @@ void initialize() {
     // Create a character
     character = new Character(0.05f, -1.0f, 0.2f, 0.2f, 0.0005f, 0.0005f, 0.2f);
     const std::string texturePaths[] = { "images/Hero/Pose_1.png", "images/Hero/Pose_2.png" };
-    character->loadTextures(texturePaths, 2); 
+    character->loadTextures(texturePaths, 2);
+    const std::string gunTexturePath = "images/Hero/Gun.png";
+    character->loadGunTexture(gunTexturePath);
+
+    character->loadBulletTexture("images/Bullets/fire.png");
 
     // Create Zombie
     zombie1 = new Zombie2(0.5f, -1.0f, 0.1f, 0.2f, 0.0005f, 0.0005f, 1.0f, character);
@@ -64,6 +71,10 @@ void display() {
     
     character->update();
     character->draw();
+
+    // Update and draw bullets
+    character->updateBullets();
+    character->drawBullets();
 
     // Update and draw Zombie
     zombie1->update();
@@ -116,6 +127,9 @@ int main(int argc, char** argv) {
 
     glutSpecialFunc(handleSpecialKeyPress);
     glutSpecialUpFunc(handleSpecialKeyRelease);
+
+    glutPassiveMotionFunc(mouseMotionCallback);
+    glutMouseFunc(handleMouseClick);
 
     initialize();
     atexit(cleanup); // Register cleanup function
@@ -191,3 +205,21 @@ void handleSpecialKeyRelease(int key, int x, int y) {
         break;
     }
 }
+
+void mouseMotionCallback(int x, int y) {
+    // Replace windowWidth and windowHeight with actual variables for your window dimensions
+    float normalizedX = (x / (float)800) * 2.0f - 1.0f; // Normalize to [-1, 1]
+    float normalizedY = -((y / (float)600) * 2.0f - 1.0f); // Normalize to [-1, 1], flip y-axis
+
+    // Assuming `character` is a global or accessible instance of your Character class
+    character->updateGunRotation(normalizedX, normalizedY);
+}
+
+void handleMouseClick(int button, int state, int x, int y) {
+    if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        character->fireBullet();
+    }
+}
+
+
+
