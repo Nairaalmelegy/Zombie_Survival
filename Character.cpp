@@ -261,12 +261,11 @@ void Character::fireBullet() {
         return;
     }
 
-    float bulletX = x + (isFacingLeft ? -width / 2.0f : width / 2.0f);  // Adjust the offset
-    float bulletY = y + height / 1.5f;  // Adjust Y to be closer to the gun
-    ////////////////////////////////////Here
+    float bulletX = x + (isFacingLeft ? -width / 2.0f : width / 2.0f);
+    float bulletY = y + height / 1.5f;
     float actualGunAngle = gunAngle;
     if (isFacingLeft) {
-        actualGunAngle += 180.0f; // Adjust angle for flipped direction
+        actualGunAngle += 180.0f;
     }
 
     // Convert gunAngle from degrees to radians
@@ -282,7 +281,7 @@ void Character::fireBullet() {
     bulletDy /= magnitude;
 
     // Set bullet speed and direction
-    float bulletSpeed = 0.02f; // Adjust this value as needed
+    float bulletSpeed = 0.02f;
     Bullet newBullet(bulletX, bulletY, bulletDx * bulletSpeed, bulletDy * bulletSpeed, bulletSpeed);
     newBullet.width = 0.05f;
     newBullet.height = 0.05f;
@@ -293,8 +292,6 @@ void Character::fireBullet() {
     // Add the bullet to the vector
     bullets.push_back(newBullet);
 }
-
-
 
 void Character::updateBullets() {
     for (auto& bullet : bullets) {
@@ -323,7 +320,7 @@ void Character::drawBullets() const {
 }
 
 void Bullet::update() {
-    // Move the bullet based on its direction and speed
+    // Move the bullet based on its direction
     x += dx;
     y += dy;
 }
@@ -337,6 +334,13 @@ void Bullet::draw() const {
     glTexCoord2f(0.0f, 1.0f); glVertex2f(x - width / 2, y + height / 2);
     glEnd();
 }
+
+ std::vector<Bullet>& Character::getBullets() {
+    return bullets; // Return the vector of bullets
+}
+
+
+
 
 
 
