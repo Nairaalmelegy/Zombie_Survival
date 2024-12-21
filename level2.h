@@ -2,6 +2,7 @@
 #define LEVEL2_H
 #include <GL/glut.h>
 #include <string>
+#include <vector>
 
 class Level_2_Arena {
 public:
@@ -14,6 +15,19 @@ public:
 
     // Draw the background and overlay textures
     void draw();
+
+    struct Boundary {
+        float left;
+        float right;
+        float top;
+        float bottom;
+    };
+    const std::vector<Boundary>& getOverlayBoundaries() const {
+        return overlayBoundaries;
+    }
+    bool isColliding(float x, float y, const Boundary& boundary);
+
+    std::vector<Boundary> overlayBoundaries;
 
 private:
     GLuint backgroundTextureID;
@@ -30,6 +44,8 @@ private:
 
     // Load a texture from an image file
     void loadTexture(const std::string& imagePath, GLuint& textureID, int& width, int& height, int& channels);
+    bool isCollidingWithOverlays(float x, float y, float width, float height) const;
+    
 };
 
 #endif
