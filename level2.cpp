@@ -49,6 +49,17 @@ void Level_2_Arena::init(const std::string& backgroundPath, const std::string& o
     loadTexture(overlayPathRight, overlayRightTextureID, overlayRightWidth, overlayRightHeight, overlayRightChannels);
     loadTexture(overlayPathBottomMid, overlayBottomMidTextureID, overlayBottomMidWidth, overlayBottomMidHeight, overlayBottomMidChannels);
     loadTexture(overlayPathMiddle, overlayMiddleTextureID, overlayMiddleWidth, overlayMiddleHeight, overlayMiddleChannels);  // Load new middle overlay
+
+    // Define overlay boundaries
+    overlayBoundaries.push_back({ -1.0f, -1.0f + 0.6f, -0.3f, -0.3f + 0.07f });  // Left overlay
+    overlayBoundaries.push_back({ 1.0f - 0.6f, 1.0f, -0.55f, -0.55f + 0.07f });  // Right overlay
+    overlayBoundaries.push_back({ -0.03f, 0.03f, 0.3f, 1.0f });                 // Bottom middle overlay
+    overlayBoundaries.push_back({ -0.3f, -0.3f + 0.6f, 0.3f, 0.3f + 0.07f });    // Middle overlay
+
+}
+//To respect boundaries
+bool isColliding(float x, float y, const Level_2_Arena::Boundary& boundary) {
+    return x > boundary.left && x < boundary.right && y > boundary.bottom && y < boundary.top;
 }
 
 void Level_2_Arena::draw() {
@@ -71,7 +82,7 @@ void Level_2_Arena::draw() {
         float rectHeight = 0.07f;
         float left = -1.0f;
         float right = left + rectWidth;
-        float bottom = -0.3f;  // Position left overlay at a new Y value
+        float bottom = -0.3f;
         float top = bottom + rectHeight;
 
         glTexCoord2f(0.0f, 0.0f); glVertex2f(left, bottom);
@@ -129,9 +140,9 @@ void Level_2_Arena::draw() {
         glBegin(GL_QUADS);
         float rectWidth = 0.6f;
         float rectHeight = 0.07f;
-        float left = -0.3f;  // New position for middle overlay
+        float left = -0.3f;
         float right = left + rectWidth;
-        float bottom = 0.3f;  // Middle overlay at new Y value
+        float bottom = 0.3f;
         float top = bottom + rectHeight;
 
         glTexCoord2f(0.0f, 0.0f); glVertex2f(left, bottom);
@@ -141,7 +152,17 @@ void Level_2_Arena::draw() {
         glEnd();
     }
 
-    glBindTexture(GL_TEXTURE_2D, 0); // Unbind textures
+    glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+bool Level_2_Arena::isCollidingWithOverlays(float x, float y, float width, float height) const {
+    for (const auto& boundary : overlayBoundaries) {
+        if (x + width > boundary.left && x < boundary.right &&
+            y + height > boundary.bottom && y < boundary.top) {
+            return true;
+        }
+    }
+    return false;
 }
 
 #endif
