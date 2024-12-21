@@ -86,11 +86,27 @@ void Character::updateGunRotation(float mx, float my) {
     float dy = mouseY - (y + height / 2.0f);
     float angle = atan2(dy, dx) * 180.0f / 3.14159f;
 
+    
+    // Adjust angle for left-facing character
     if (isFacingLeft) {
-        gunAngle = 180.0f - angle;
+        if (angle > 180.0f) {
+            angle = 180.0f;
+        }
+        else if (angle < 90.0f) {
+            angle = 90.0f;
+        }
+
+        gunAngle = angle + 180.0f; // Adjust for left-facing
     }
     else {
-        gunAngle = angle;
+        if (angle > 90.0f) {
+            angle = 90.0f;
+        }
+        else if (angle < -90.0f) {
+            angle = -90.0f;
+        }
+
+        gunAngle = angle; // Use the calculated angle as-is
     }
 }
 
@@ -103,8 +119,8 @@ void Character::drawGun() const {
     glTranslatef(x + width / 1.5f, y + height / 1.5f, 0.0f);
 
     if (isFacingLeft) {
-        glScalef(-1.0f, 1.0f, 1.0f); // Flip horizontally for left-facing
-        glRotatef(gunAngle, 0.0f, 0.0f, 1.0f);
+        glScalef(-1.0f, 1.0f, 1.0f);
+        glRotatef(-gunAngle, 0.0f, 0.0f, 1.0f);
     }
     else {
         glRotatef(gunAngle, 0.0f, 0.0f, 1.0f);
@@ -246,10 +262,15 @@ void Character::fireBullet() {
     }
 
     float bulletX = x + (isFacingLeft ? -width / 2.0f : width / 2.0f);  // Adjust the offset
-    float bulletY = y + height / 4.0f;  // Adjust Y to be closer to the gun
+    float bulletY = y + height / 1.5f;  // Adjust Y to be closer to the gun
+    ////////////////////////////////////Here
+    float actualGunAngle = gunAngle;
+    if (isFacingLeft) {
+        actualGunAngle += 180.0f; // Adjust angle for flipped direction
+    }
 
     // Convert gunAngle from degrees to radians
-    float angleRadians = gunAngle * 3.14159f / 180.0f;
+    float angleRadians = actualGunAngle * 3.14159f / 180.0f;
 
     // Calculate bullet direction
     float bulletDx = cos(angleRadians);
