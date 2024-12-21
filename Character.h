@@ -4,6 +4,7 @@
 #define CHARACTER_H
 
 #include <GL/glut.h>
+//#include "CollisionUtils.h"
 #include <string>
 #include <vector>
 
@@ -36,38 +37,52 @@ public:
 
     void update();
     void draw() const;
+    float getX() const{
+        return x;
+    }
+    float getY() const {
+        return y;
+    }
+    float getWidth() const {
+        return width;
+    }
+    float getHeight() const {
+        return height;
+    }
+    void deactivate() { isActive = false; }
     
 };
 
 // Character Class
 class Character {
 private:
-    static const int MAX_TEXTURES = 10; // Maximum number of textures
+    static const int MAX_TEXTURES = 10;
     GLuint textures[MAX_TEXTURES];
-    int textureCount;       // Number of loaded textures
+    int textureCount;
     int currentStep;
-    float x, y;             // Position
-    float width, height;    // Size
-    float speedX, speedY;   // Speed for movement
+    float x, y;
+    float width, height;
+    float speedX, speedY;
     float animationSpeed;
     float lastUpdateTime;
     float Health = 100.0f;
     bool isFacingLeft = false;
     bool isOnGround = false;
 
-    float airPauseTime = 0.0f;        // Time to pause in the air
+    float airPauseTime = 0.0f;
     const float maxAirPause = 0.2f;
 
     // Floating Gun
-    GLuint gunTexture;        // Gun texture
-    float gunWidth = 0.2f, gunHeight = 0.2f; // Gun dimensions
-    float gunAngle = 0.0f;           // Angle for gun rotation
-    float mouseX = 0.0f, mouseY = 0.0f;     // Mouse coordinates for rotation calculation
+    GLuint gunTexture;
+    float gunWidth = 0.2f, gunHeight = 0.2f;
+    float gunAngle = 0.0f;
+    float mouseX = 0.0f, mouseY = 0.0f;
 
     // Bullets
     GLuint BulletTexture;
     std::vector<Bullet> bullets;
-    float bulletSpeed = 0.2f; // Adjust bullet speed
+    float bulletSpeed = 0.2f;
+
 
 public:
     // Constructor
@@ -85,15 +100,20 @@ public:
     void jump(float jumpSpeed);
     float getX() const { return x; }
     /*Bullet*/
-    void loadBulletTexture(const std::string& BullettexturePath); // Load bullet texture
+    void loadBulletTexture(const std::string& BullettexturePath);
 
     // Gun
     void loadGunTexture(const std::string& gunTexturePath);
-    void updateGunRotation(float mouseX, float mouseY); // Update gun's rotation
+    void updateGunRotation(float mouseX, float mouseY);
     void drawGun() const;
     void fireBullet();
-    void updateBullets(); // Update all active bullets
-    void drawBullets() const; // Draw all active bullets
+    void updateBullets();
+    void drawBullets() const;
+
+    std::vector<Bullet>& getBullets();
+
+
+    
 };
 
 #endif // CHARACTER_H
