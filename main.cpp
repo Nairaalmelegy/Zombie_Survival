@@ -1,8 +1,15 @@
 #include <GL/glut.h>
 #include "Character.h"
 #include "Zombie.h"
+#include "level1.h"
+#include "level2.h"
+#include "level3.h"
+#include <string>
 #include <iostream>
 
+Level_1_Arena* level1;
+Level_2_Arena* level2;
+Level_3_Arena* level3;
 Bullet* bullet;
 Character* character;
 Zombie2* zombie1;
@@ -63,12 +70,35 @@ void initialize() {
         
     };
     zombie3->loadZombie(zombie3Textures, 2);
+
+
+
+    std::string side = "images/backGround/side.png";
+    std::string mid = "images/backGround/mid.png";
+
+    // create level1 arena
+    level1 = new  Level_1_Arena();
+    std::string back1 = "images/backGround/level1.jpg";
+    level1->init(back1, side, side, mid); // Path to your background image
+
+    // create level2 Arena
+    level2 = new  Level_2_Arena();
+    std::string back2 = "images/backGround/level2.jpg";
+    level2->init(back2, side, side, mid, side);
+
+    //create level3 arena
+    level3 = new  Level_3_Arena();
+    std::string back3 = "images/backGround/level3.jpg";
+    level3->init(back3, side, side, mid, side);
+
+
 }
 
 // Display function
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
-    
+    level2->draw();
+
     character->update();
     character->draw();
 
@@ -117,10 +147,6 @@ int main(int argc, char** argv) {
     glutInitWindowSize(800, 600);
     glutCreateWindow("Character Animation");
 
-    // Register display and update callbacks
-    glutDisplayFunc(display);
-    glutIdleFunc(display);
-
     // Register keyboard callbacks
     glutKeyboardFunc(OnKeyPress);
     glutKeyboardUpFunc(OnKeyRelease);
@@ -136,7 +162,7 @@ int main(int argc, char** argv) {
 
     glutDisplayFunc(display);
     glutIdleFunc(display);
-    glutKeyboardFunc(keyboard); // Handle keyboard input
+    //glutKeyboardFunc(keyboard); // Handle keyboard input
 
     glutMainLoop();
     return 0;
@@ -220,6 +246,3 @@ void handleMouseClick(int button, int state, int x, int y) {
         character->fireBullet();
     }
 }
-
-
-
