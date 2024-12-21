@@ -35,7 +35,7 @@ GLuint loadZombieHelper(const std::string& filePath) {
 // Constructor
 Zombie::Zombie(float x, float y, float width, float height, float speedX, float speedY, float animationSpeed, Character* target)
     : x(x), y(y), width(width), height(height), speedX(speedX), speedY(speedY),
-    animationSpeed(animationSpeed), currentStep(0), lastUpdateTime(0.0f), textureCount(0), health(100.0f), target(target) {  // Initialize health here
+    animationSpeed(animationSpeed), currentStep(0), lastUpdateTime(0.0f), textureCount(0), health(100.0f), target(target), hitCount(0) {
     float targetx = (target ? target->getX() : 0.0f);
 }
 
@@ -97,6 +97,7 @@ void Zombie::update() {
 
 // Draw the zombie
 void Zombie::draw() const {
+    if (hitCount >= maxHits) return;
     if (textureCount == 0) return; // No textures loaded
 
     glBindTexture(GL_TEXTURE_2D, textures[currentStep]);
@@ -108,19 +109,6 @@ void Zombie::draw() const {
     glTexCoord2f(0.0f, 1.0f); glVertex2f(x, y + height);
     glEnd();
 }
-/*
-// Additional methods for health management
-void Zombie::takeDamage(float damage) {
-    Health -= damage;
-    if (Health < 0.0f) {
-        Health = 0.0f; // Prevent negative health
-    }
-}
-
-bool Zombie::isDead() const {
-    return Health <= 0;
-}
-*/
 
 
 // Zombie 2
@@ -162,10 +150,6 @@ void Zombie2::update() {
     }
 }
 
-
-
-
-
 void Zombie2::draw() const {
     if (textureCount == 0) return;
     glBindTexture(GL_TEXTURE_2D, textures[currentStep]);
@@ -192,9 +176,6 @@ void Zombie2::draw() const {
 
     glEnd();
 }
-
-
-
 
 
 
