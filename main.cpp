@@ -15,6 +15,7 @@ Character* character;
 Zombie2* zombie1;
 Zombie2* zombie2;
 Zombie2* zombie3;
+
 bool moveLeftKey = false;
 bool moveRightKey = false;
 bool jumpKey = false;
@@ -94,6 +95,19 @@ void initialize() {
 
 }
 
+
+
+void checkBulletCollision(Bullet& bullet, Zombie& zombie) {
+    if (bullet.isActive && !zombie.isDead() &&
+        bullet.getX() < zombie.getX() + zombie.getWidth() &&
+        bullet.getX() + bullet.getWidth() > zombie.getX() &&
+        bullet.getY() < zombie.getY() + zombie.getHeight() &&
+        bullet.getY() + bullet.getHeight() > zombie.getY()) {
+
+        zombie.takeHit();
+        bullet.deactivate();
+    }
+}
 // Display function
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
@@ -115,6 +129,16 @@ void display() {
 
     zombie3->update();
     zombie3->draw();
+
+    // Collision checking
+    for (Bullet& bullet : character->getBullets()) {
+        if (bullet.isActive) {
+            checkBulletCollision(bullet, *zombie1);
+            checkBulletCollision(bullet, *zombie2);
+            checkBulletCollision(bullet, *zombie3);
+        }
+    }
+
     glutSwapBuffers();
 }
 
@@ -136,6 +160,8 @@ void keyboard(unsigned char key, int x, int y) {
         exitProgram();
     }
 }
+
+
 /*--------------------------------------------------Control movement by keyboard--------------------------------*/
 
 
@@ -246,3 +272,6 @@ void handleMouseClick(int button, int state, int x, int y) {
         character->fireBullet();
     }
 }
+
+
+
