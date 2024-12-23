@@ -4,6 +4,7 @@
 #define CHARACTER_H
 
 #include <GL/glut.h>
+#include "Zombie.h"
 //#include "CollisionUtils.h"
 #include <string>
 #include <vector>
@@ -68,7 +69,7 @@ private:
     float Health = 100.0f;
     bool isFacingLeft = false;
     bool isOnGround = false;
-
+    
     float airPauseTime = 0.0f;
     const float maxAirPause = 0.2f;
 
@@ -83,14 +84,13 @@ private:
     std::vector<Bullet> bullets;
     float bulletSpeed = 0.2f;
 
-
 public:
+    bool isActive = false;
     // Constructor
     Character(float x, float y, float width, float height, float speedX, float speedY, float animationSpeed);
 
     // Destructor
     ~Character();
-
     // Methods to manage character
     void loadTextures(const std::string texturePaths[], int count);
     void update();
@@ -99,6 +99,18 @@ public:
     void moveRight();
     void jump(float jumpSpeed);
     float getX() const { return x; }
+    float getY() const { return y; }
+    float getWidth() const { return width; }
+    float getHeight() const { return height; }
+    void deactivate() {
+        isActive = false;
+    }
+
+    void takeHit();
+
+    // Make the zombie disappear
+    void disappear();
+    
     /*Bullet*/
     void loadBulletTexture(const std::string& BullettexturePath);
 
@@ -111,8 +123,6 @@ public:
     void drawBullets() const;
 
     std::vector<Bullet>& getBullets();
-
-
     
 };
 
