@@ -44,7 +44,7 @@ GLuint loadTexture(const std::string& filePath) {
 
 // Constructor
 Character::Character(float x, float y, float width, float height, float speedX, float speedY, float animationSpeed)
-    : x(x), y(y), width(width), height(height), speedX(speedX), speedY(speedY), animationSpeed(animationSpeed), currentStep(0), lastUpdateTime(0.0f), textureCount(0), airPauseTime(0.0f) {}
+    : x(x), y(y), width(width), height(height), speedX(speedX), speedY(speedY), animationSpeed(animationSpeed), currentStep(0), lastUpdateTime(0.0f), textureCount(0), airPauseTime(0.0f), isActive(true) {}
 
 // Destructor
 Character::~Character() {
@@ -205,11 +205,12 @@ void Character::update() {
             ++it;
         }
     }
+
 }
 
 // Draw the character
 void Character::draw() {
-    if (textureCount == 0) return;
+    if (!isActive || textureCount == 0) return;
 
     // Draw character
     glBindTexture(GL_TEXTURE_2D, textures[currentStep]);
@@ -338,10 +339,3 @@ void Bullet::draw() const {
  std::vector<Bullet>& Character::getBullets() {
     return bullets; // Return the vector of bullets
 }
-
-
-
-
-
-
-
