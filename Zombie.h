@@ -84,7 +84,7 @@ public:
 
     void update() override;
     void draw() const override;
-    void checkCollision(const Bullet* bullet);
+    //void checkCollision(const Bullet* bullet);
 
 };
 
