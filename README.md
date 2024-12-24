@@ -1,5 +1,3 @@
-# Zombie Survival Game
-
 ![Zombie Survival Banner](images/backGround/Head.png)
 
 Zombie Survival is a thrilling OpenGL C++ game where players must navigate through a post-apocalyptic world overrun by zombies. Test your survival skills as you kill zombies and make strategic decisions to stay alive.
