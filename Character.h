@@ -86,6 +86,7 @@ private:
 
 public:
     bool isActive = false;
+    bool reach = false;
     // Constructor
     Character(float x, float y, float width, float height, float speedX, float speedY, float animationSpeed);
 
