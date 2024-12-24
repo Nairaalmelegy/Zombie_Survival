@@ -8,10 +8,15 @@
 #include <iostream>
 #include <sstream>
 #include "stb_image.h"
+#include "irrKlang.h"
+using namespace irrklang;
+
 
 int score = 0;
 float timer = 90.0f; // Timer starts at 60 seconds
 bool isRunning = true;
+ISoundEngine* soundEngine = nullptr;
+
 
 Level_1_Arena* level1;
 Level_2_Arena* level2;
@@ -31,6 +36,7 @@ Zombie2* zombie9;
 bool moveLeftKey = false;
 bool moveRightKey = false;
 bool jumpKey = false;
+int nzombies = 15;
 
 void OnKeyPress(unsigned char key, int x, int y);
 void OnKeyRelease(unsigned char key, int x, int y);
@@ -38,6 +44,7 @@ void handleSpecialKeyPress(int key, int x, int y);
 void handleSpecialKeyRelease(int key, int x, int y);
 void mouseMotionCallback(int x, int y);
 void handleMouseClick(int button, int state, int x, int y);
+
 // Cleanup resources
 void cleanup() {
     delete character;
@@ -50,6 +57,10 @@ void cleanup() {
     delete zombie7;
     delete zombie8;
     delete zombie9;
+    if (soundEngine) {
+        soundEngine->drop(); // Cleans up the sound engine
+    }
+    soundEngine->drop();
 }
 void exitProgram() {
     cleanup();
@@ -65,11 +76,6 @@ void renderBitmapString(float x, float y, void *font, const std::string &string)
     }
 }
 
-void Print_Score() {
-    
-    
-    //glutSwapBuffers();
-}
 
 void update(int value) {
     if (isRunning) {
@@ -139,6 +145,16 @@ void initialize() {
     character->loadGunTexture(gunTexturePath);
 
     character->loadBulletTexture("images/Bullets/fire.png");
+
+
+    //sound
+    soundEngine = createIrrKlangDevice();
+    if (!soundEngine) {
+        std::cerr << "Error initializing sound engine!" << std::endl;
+        exit(1);
+    }
+    // Play background music (looped)
+    soundEngine->play2D("sounds/back_music.wav", true); // true = loop
 
     //timer and score
     glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -269,6 +285,7 @@ void checkBulletCollision(Bullet& bullet, Zombie& zombie) {
         bullet.getY() < zombie.getY() + zombie.getHeight() &&
         bullet.getY() + bullet.getHeight() > zombie.getY()) {
         addScore(1);
+        nzombies--;
         zombie.takeHit();
         bullet.deactivate();
     }
@@ -280,11 +297,12 @@ enum GameState {
     LEVEL_SELECTION,
     GAME_LEVEL_1,
     GAME_LEVEL_2,
-    GAME_LEVEL_3
+    GAME_LEVEL_3,
+    WINNER,
+    LOSER
 };
 
 GameState currentState = INTRO_MENU;
-
 // Define regions for menu options (adjust values to match your layout)
 struct Region {
     float xMin, xMax, yMin, yMax;
@@ -299,6 +317,11 @@ Region level1Button = { -0.5f, 0.5f, 0.2f, 0.4f, 0 };
 Region level2Button = { -0.5f, 0.5f, -0.2f, 0.0f, 0 };
 Region level3Button = { -0.5f, 0.5f, -0.6f, -0.4f, 0 };
 Region menuBackground = { -1.0f, 1.0f, -1.0f, 1.0f, 0 };
+Region Heading = { -0.5f, 0.5f, 0.4f, 0.8f, 0 };
+
+Region winner = { -0.5f, 0.5f, 0.2f, 0.4f, 0 };
+Region Loser = { -0.5f, 0.5f, 0.2f, 0.4f, 0 };
+Region playagain = { -0.5f, 0.5f, -0.6f, -0.4f, 0 };
 
 GLuint loadTexture(const char* filename) {
     GLuint texture;
@@ -333,6 +356,10 @@ void initializeTextures() {
     level3Button.textureID = loadTexture("images/backGround/6.png");
 
     menuBackground.textureID = loadTexture("images/backGround/level3.jpg");
+    Heading.textureID = loadTexture("images/backGround/Head.png");
+    winner.textureID = loadTexture("images/backGround/7.png");
+    Loser.textureID = loadTexture("images/backGround/8.png");
+    playagain.textureID = loadTexture("images/backGround/again.png");
 }
 
 
@@ -355,6 +382,25 @@ void Character::disappear() {
     speedX = 0.0f;
     speedY = 0.0f;
 }
+/*---------------------Handle Phases of game-------------------*/
+bool wincondition() {
+    if (nzombies <= 0) {
+        std::cout << "You win!" << std::endl;
+        return true;
+    }
+    return false;
+}
+
+bool losecondition(){
+    if (timer <= 0) {
+        std::cout << "You lose!" << std::endl;
+        return true;
+    } else if (character->reach){
+        std::cout << "You lose!" << std::endl;
+        return true;
+    }
+    return false;
+}
 
 void drawTexturedButton(const Region& button) {
     if (button.textureID == 0) return; // Skip if texture not set
@@ -375,14 +421,31 @@ void drawTexturedButton(const Region& button) {
 void renderMenu() {
     
     if (currentState == INTRO_MENU) {
+        drawTexturedButton(Heading);
         drawTexturedButton(playButton);
         drawTexturedButton(aboutUsButton);
         drawTexturedButton(exitButton);
     }
     else if (currentState == LEVEL_SELECTION) {
+        drawTexturedButton(Heading);
         drawTexturedButton(level1Button);
         drawTexturedButton(level2Button);
         drawTexturedButton(level3Button);
+    } else if (currentState == WINNER) {
+        nzombies = 15;
+        soundEngine->stopAllSounds();
+        soundEngine->play2D("sounds/bonus.wav", false);
+        level3->draw();
+        
+        drawTexturedButton(winner);
+        drawTexturedButton(playagain);
+    } else if (currentState == LOSER) {
+        nzombies = 15;
+        soundEngine->stopAllSounds();
+        soundEngine->play2D("sounds/over.wav", false);
+        level3->draw();
+        drawTexturedButton(Loser);
+        drawTexturedButton(playagain);
     }
 }
 
@@ -399,6 +462,7 @@ bool isInsideRegion(int mouseX, int mouseY, const Region& region) {
 
 void handleMouseClick(int button, int state, int x, int y) {
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN) {
+        soundEngine->play2D("sounds/mouse_click.wav", false);
         if (currentState == INTRO_MENU || currentState == LEVEL_SELECTION) {
             // Handle menu interactions
             switch (currentState) {
@@ -409,7 +473,7 @@ void handleMouseClick(int button, int state, int x, int y) {
                     glutPostRedisplay();
                 }
                 else if (isInsideRegion(x, y, aboutUsButton)) {
-                    std::cout << "About Us: This game is created by [Your Name]." << std::endl;
+                    std::cout << "About Us: This game is created by [Naira, Wessal, Manar, Ahmed]." << std::endl;
                     
                     glutPostRedisplay();
                 }
@@ -441,10 +505,11 @@ void handleMouseClick(int button, int state, int x, int y) {
         else if (currentState == GAME_LEVEL_1 || currentState == GAME_LEVEL_2 || currentState == GAME_LEVEL_3) {
             character->update();
             character->draw();
+            
             // Update and draw bullets
             character->updateBullets();
             character->drawBullets();
-
+            soundEngine->play2D("sounds/Gunfire.wav", false);
             character->fireBullet();
 
             for (Bullet& bullet : character->getBullets()) {
@@ -454,6 +519,13 @@ void handleMouseClick(int button, int state, int x, int y) {
                     checkBulletCollision(bullet, *zombie3);
                 }
             }
+        } else if (currentState == WINNER || currentState == LOSER) {
+            if(isInsideRegion(x, y, playagain)) {
+                currentState = INTRO_MENU;
+                score = 0;
+                timer = 90.0f;
+            }
+            initialize();
         }
     }
 }
@@ -467,6 +539,8 @@ void displayMenu() {
 
     if (currentState == INTRO_MENU) {
         // Draw Intro Menu (Play, About Us, Exit)
+        soundEngine->play2D("sounds/back_music.mp3", true); // true = loop
+
         drawTexturedButton(menuBackground);
         renderMenu();
 
@@ -479,8 +553,10 @@ void displayMenu() {
 
     }
     else if (currentState == GAME_LEVEL_1 || currentState == GAME_LEVEL_2 || currentState == GAME_LEVEL_3) {
+        soundEngine->play2D("sounds/zombie1.wav", false);
         switch (currentState) {
         case GAME_LEVEL_1:
+            
             level1->draw();
             character->update();
             character->draw();
@@ -508,10 +584,16 @@ void displayMenu() {
                 }
             }
 
-
+            if (wincondition()) {
+                currentState = WINNER;
+            }
+            if (losecondition()) {
+                currentState = LOSER;
+            }
             renderHUD();
             break;
         case GAME_LEVEL_2:
+            
             level2->draw();
 
             character->update();
@@ -536,13 +618,20 @@ void displayMenu() {
                 if (bullet.isActive) {
                     checkBulletCollision(bullet, *zombie1);
                     checkBulletCollision(bullet, *zombie2);
-                    checkBulletCollision(bullet, *zombie3);
+                    checkBulletCollision(bullet, *zombie4);
                 }
             }
 
+            if (wincondition()) {
+                currentState = WINNER;
+            }
+            if (losecondition()) {
+                currentState = LOSER;
+            }
             renderHUD();
             break;
         case GAME_LEVEL_3:
+            
             level3->draw();
             character->update();
             character->draw();
@@ -568,10 +657,19 @@ void displayMenu() {
                     checkBulletCollision(bullet, *zombie6);
                 }
             }
+
+            if (wincondition()) {
+                currentState = WINNER;
+            }
+            if (losecondition()) {
+                currentState = LOSER;
+            }
             renderHUD();
             break;
         }
         
+    } else if (currentState == WINNER || currentState == LOSER) {
+        renderMenu();
     }
     
     glutSwapBuffers();
