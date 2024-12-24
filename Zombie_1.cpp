@@ -78,8 +78,10 @@ void Zombie::update() {
     // Stop if at the target's position minus width
     if (fabs(x - (targetX + width)) < 0.05f) { // Close enough to stop
         speedX = 0.0f; // Stop moving
-        x = targetX + width; // Ensure alignment with target
+        x = targetX + width;
+        //currentGameState = GAME_OVER; // Trigger lose condition
     }
+
 
 
     // Optional: Bounce off boundaries
@@ -136,6 +138,9 @@ void Zombie2::update() {
     else if (distance < -0.1) {
         x -= (speedX / 8);
         isFacingRight = false;
+    } else {
+        std::cout << "Game Over! The zombie reached the character!" << std::endl;
+        target->reach = true;
     }
 
     // screen boundaries
