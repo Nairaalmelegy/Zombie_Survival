@@ -339,3 +339,12 @@ void Bullet::draw() const {
  std::vector<Bullet>& Character::getBullets() {
     return bullets; // Return the vector of bullets
 }
+
+
+ 
+
+
+
+
+
+
