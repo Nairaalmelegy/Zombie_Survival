@@ -62,7 +62,7 @@ Zombie Survival is a thrilling OpenGL C++ game where players must navigate throu
 
 ## Screenshots
 
-Add some in-game screenshots to showcase your game visually. Example:
+ScreenShot from our game:
 
 ![Gameplay Screenshot](images/Screen.png)
 
