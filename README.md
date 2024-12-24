@@ -107,16 +107,16 @@ For questions, suggestions, or feedback, please contact:
 - **GitHub**: [Nairaalmelegy](https://github.com/Nairaalmelegy)
 
 - **Developer**: Wessal Ayman
-- **Email**: [nairaalmelegy@gmail.com](#)
-- **GitHub**: [Nairaalmelegy](#)
+- **Email**: [](#)
+- **GitHub**: [](#)
 
 - **Developer**: Manar Daif
-- **Email**: [nairaalmelegy@gmail.com](#)
-- **GitHub**: [Nairaalmelegy](#)
+- **Email**: [](#)
+- **GitHub**: [](#)
 
 - **Developer**: Ahmed Refat
-- **Email**: [nairaalmelegy@gmail.com](#)
-- **GitHub**: [Nairaalmelegy](#)
+- **Email**: [](#)
+- **GitHub**: [](#)
 
 ---
 
